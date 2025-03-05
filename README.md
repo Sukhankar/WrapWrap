@@ -1,4 +1,4 @@
-Here's an updated **`README.md`** file for your **WarpWrap** VS Code extension, including detailed installation and usage instructions for **VS Code**. It ensures that users can easily understand how to install, activate, and use the extension efficiently. 🚀  
+
 
 ---
 
