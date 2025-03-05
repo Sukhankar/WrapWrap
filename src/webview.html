@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WarpWrap - HTML Wrapper</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #1e1e1e;
+            color: white;
+            text-align: center;
+            padding: 20px;
+        }
+        h2 {
+            color: #d4d4d4;
+        }
+        select, input, button {
+            width: 90%;
+            padding: 10px;
+            margin: 10px;
+            font-size: 16px;
+            border-radius: 5px;
+            border: none;
+        }
+        select {
+            background-color: #333;
+            color: white;
+        }
+        input {
+            background-color: #222;
+            color: white;
+        }
+        button {
+            background-color: #007acc;
+            color: white;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #005f99;
+        }
+    </style>
+</head>
+<body>
+    <h2>WarpWrap - HTML Wrapper</h2>
+    <label for="tagSelect">Choose a tag:</label>
+    <select id="tagSelect">
+        <option value="div">div</option>
+        <option value="span">span</option>
+        <option value="section">section</option>
+        <option value="article">article</option>
+        <option value="p">p</option>
+    </select>
+    <input type="text" id="classInput" placeholder="Enter class name (optional)">
+    <input type="text" id="idInput" placeholder="Enter ID (optional)">
+    <button id="wrapButton">Wrap Selection</button>
+
+    <script>
+        const vscode = acquireVsCodeApi();
+
+        document.getElementById('wrapButton').addEventListener('click', () => {
+            const tag = document.getElementById('tagSelect').value;
+            const className = document.getElementById('classInput').value;
+            const idName = document.getElementById('idInput').value;
+
+            vscode.postMessage({ command: 'wrapSelection', tag, className, idName });
+        });
+    </script>
+</body>
+</html>

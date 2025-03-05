@@ -1,0 +1,12 @@
+{
+    "div": "class='container'",
+    "span": "class='highlight'",
+    "section": "class='content-section'",
+    "article": "class='blog-article'",
+    "header": "class='main-header'",
+    "footer": "class='site-footer'",
+    "nav": "class='navigation'",
+    "aside": "class='sidebar'",
+    "custom": "class='custom-element'"
+  }
+  
