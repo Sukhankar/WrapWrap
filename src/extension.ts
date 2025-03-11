@@ -11,7 +11,7 @@ export function activate(context: vscode.ExtensionContext) {
     const disposableWrap = vscode.commands.registerTextEditorCommand('warpwrap.wrapSelection', async (textEditor, edit) => {
         try {
             const config = loadConfig();
-            const predefinedTags = config.defaultTags || ['div', 'span', 'section', 'article', 'header', 'footer', 'nav', 'aside', 'custom'];
+            const predefinedTags = config.defaultTags || getDefaultConfig().defaultTags;
             const autoFormat = config.autoFormat ?? true;
             const jsxSupport = config.jsxSupport ?? true;
 
@@ -49,7 +49,7 @@ export function activate(context: vscode.ExtensionContext) {
         }
     });
 
-    const disposableUndo = vscode.commands.registerCommand('warpwrap.undoLastWrap', async () => {
+    const disposableUndo = vscode.commands.registerCommand('warpwrap.undoWrap', async () => {
         if (!lastWrap) return vscode.window.showWarningMessage('No previous wrap action to undo.');
         const textEditor = vscode.window.activeTextEditor;
         if (!textEditor) return;
@@ -64,46 +64,54 @@ export function activate(context: vscode.ExtensionContext) {
         vscode.window.showInformationMessage('Last wrap action undone.');
     });
 
-    const disposableUI = vscode.commands.registerCommand('warpwrap.openUI', () => {
-           const panel = vscode.window.createWebviewPanel(
-               'warpwrapUI',
-               'WarpWrap - HTML Wrapper',
-               vscode.ViewColumn.Two,
-               { enableScripts: true }
-           );
-   
-           panel.webview.html = getWebviewContent();
-   
-           panel.webview.onDidReceiveMessage(
-               message => {
-                   if (message.command === 'wrapText') {
-                       wrapSelectionWithUI(message.tag, message.className, message.idName);
-                   }
-               },
-               undefined,
-               context.subscriptions
-           );
-       });
-   
-       context.subscriptions.push(disposableWrap, disposableUndo, disposableUI);
-   }
+    const disposableOpenUI = vscode.commands.registerCommand('warpwrap.openUI', () => {
+        const panel = vscode.window.createWebviewPanel(
+            'warpwrapUI',
+            'WarpWrap UI',
+            vscode.ViewColumn.One,
+            { enableScripts: true }
+        );
+        panel.webview.html = getWebviewContent();
+    });
+
+    context.subscriptions.push(disposableWrap, disposableUndo, disposableOpenUI);
+}
 
 export function deactivate() {}
 
 function loadConfig(): any {
     const workspaceFolders = vscode.workspace.workspaceFolders;
-    if (!workspaceFolders) return {};
-    
+    if (!workspaceFolders) return getDefaultConfig();
+
     const configPath = path.join(workspaceFolders[0].uri.fsPath, 'warpwrap.json');
-    if (fs.existsSync(configPath)) {
-        try {
-            return JSON.parse(fs.readFileSync(configPath, 'utf8'));
-        } catch (err) {
-            vscode.window.showErrorMessage('Error parsing warpwrap.json');
-            return {};
-        }
+
+    if (!fs.existsSync(configPath)) {
+        // If file doesn't exist, create it with default settings
+        fs.writeFileSync(configPath, JSON.stringify(getDefaultConfig(), null, 2));
+        vscode.window.showInformationMessage("warpwrap.json created with default settings.");
     }
-    return {};
+
+    try {
+        return JSON.parse(fs.readFileSync(configPath, 'utf8'));
+    } catch (err) {
+        vscode.window.showErrorMessage("Error parsing warpwrap.json. Using default settings.");
+        return getDefaultConfig();
+    }
+}
+
+function getDefaultConfig(): any {
+    return {
+        defaultTags: [
+            "div", "span", "section", "article", "header", "footer",
+            "nav", "aside", "p", "strong", "em", "blockquote", "code",
+            "table", "tr", "td", "ul", "ol", "li", "a", "custom"
+        ],
+        autoFormat: true,
+        jsxSupport: true,
+        bulkWrap: true,
+        useLastTag: false,
+        customTemplate: "<{tag}{attributes}>{content}</{tag}>"
+    };
 }
 
 async function getTagSelection(predefinedTags: string[]): Promise<string | undefined> {
@@ -141,37 +149,20 @@ function formatAttributes({ className, idName, inlineStyles }: any, jsxSupport: 
     if (inlineStyles) attributes.push(`style="${inlineStyles}"`);
     return attributes.length ? ' ' + attributes.join(' ') : '';
 }
-function getIndentation(textEditor: vscode.TextEditor, selection: vscode.Selection): string {
-    const lineText = textEditor.document.lineAt(selection.start.line).text;
-    return lineText.match(/^\s*/)?.[0] || "";
-}
 
 function wrapSelection(textEditor: vscode.TextEditor, selection: vscode.Selection, tag: string, attributes: string): string {
     const selectedText = textEditor.document.getText(selection);
-    const indentation = getIndentation(textEditor, selection);
+        const indentation = getIndentation(textEditor, selection);
+    
+    function getIndentation(textEditor: vscode.TextEditor, selection: vscode.Selection): string {
+        const line = textEditor.document.lineAt(selection.start.line);
+        return line.text.substring(0, line.firstNonWhitespaceCharacterIndex);
+    }
     return `${indentation}<${tag}${attributes}>
 ${indentation}    ${selectedText.trim()}
 ${indentation}</${tag}>`;
 }
-function wrapSelectionWithUI(tag: string, className: string, idName: string) {
-    const editor = vscode.window.activeTextEditor;
-    if (!editor) return;
 
-    const { document, selection } = editor;
-    const selectedText = document.getText(selection);
-    const attributes = [
-        className ? ` class="${className}"` : '',
-        idName ? ` id="${idName}"` : ''
-    ].join('');
-
-    const wrappedText = `<${tag}${attributes}>${selectedText}</${tag}>`;
-
-    editor.edit(editBuilder => {
-        editBuilder.replace(selection, wrappedText);
-    });
-
-    vscode.window.showInformationMessage(`Wrapped selection(s) with <${tag}> successfully!`);
-}
 function detectExistingWrapper(textEditor: vscode.TextEditor, selection: vscode.Selection): string | null {
     const selectedText = textEditor.document.getText(selection);
     const match = selectedText.match(/^<([a-zA-Z0-9-]+)(.*?)>([\s\S]*)<\/\1>$/);
@@ -205,121 +196,138 @@ function getExistingAttributes(textEditor: vscode.TextEditor) {
     }
     return { className, idName, inlineStyles };
 }
+
 function getWebviewContent() {
     return `
         <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WarpWrap - HTML Wrapper</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #1e1e1e;
-            color: #ffffff;
-            text-align: center;
-            padding: 20px;
-        }
-        .container {
-            max-width: 400px;
-            margin: auto;
-            background: #2e2e2e;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
-        }
-        h2 {
-            margin-bottom: 20px;
-            color: #f5a623;
-        }
-        select, input, button {
-            width: 100%;
-            padding: 10px;
-            margin: 10px 0;
-            border-radius: 5px;
-            border: none;
-            font-size: 16px;
-        }
-        select {
-            background: #3e3e3e;
-            color: white;
-        }
-        input {
-            background: #333;
-            color: white;
-            border: 1px solid #555;
-        }
-        button {
-            background: #0078d4;
-            color: white;
-            cursor: pointer;
-            font-weight: bold;
-        }
-        button:hover {
-            background: #005ea6;
-        }
-        .preview {
-            margin-top: 20px;
-            padding: 10px;
-            background: #222;
-            border-radius: 5px;
-            font-size: 14px;
-            color: #bbb;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h2>WarpWrap - HTML Wrapper</h2>
-        <select id="tagSelector">
-            <option value="div">div</option>
-            <option value="span">span</option>
-            <option value="section">section</option>
-            <option value="article">article</option>
-            <option value="aside">aside</option>
-            <option value="header">header</option>
-            <option value="footer">footer</option>
-        </select>
-        <input type="text" id="className" placeholder="Enter class name (optional)">
-        <input type="text" id="idName" placeholder="Enter ID (optional)">
-        <button onclick="wrapSelection()">Wrap Selection</button>
-        <div class="preview" id="preview"></div>
-    </div>
-<script>
-    const tagSelector = document.getElementById('tagSelector');
-    const className = document.getElementById('className');
-    const idName = document.getElementById('idName');
-    const preview = document.getElementById('preview');
-    if (tagSelector) tagSelector.addEventListener('change', updatePreview);
-    if (className) className.addEventListener('input', updatePreview);
-    if (idName) idName.addEventListener('input', updatePreview);
-    showPreview();
-    function updatePreview() {
-        preview.innerText = \`<\${tagSelector.value}\${getAttributes()}>Your selected text</\${tagSelector.value}>\`;
-    }
-    function getAttributes() {
-        const classNameValue = className.value ? \` class="\${className.value}"\` : '';
-        const idNameValue = idName.value ? \` id="\${idName.value}"\` : '';
-        return classNameValue + idNameValue;
-    }
-    function wrapSelection() {
-        const tag = tagSelector.value;
-        const classNameValue = className.value;
-        const idNameValue = idName.value;
-        vscode.postMessage({
-            command: 'wrapText',
-            tag,
-            className: classNameValue,
-            idName: idNameValue
-        });
-    }
-    function showPreview() {
-        updatePreview();
-    }
-</script>
-</body>
-</html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>WarpWrap UI</title>
+            <style>
+                body {
+                    font-family: 'Arial', sans-serif;
+                    padding: 20px;
+                    background-color: #1e1e1e;
+                    color: #ccc;
+                    text-align: center;
+                }
+                h2 {
+                    color: #fff;
+                }
+                .container {
+                    max-width: 400px;
+                    margin: auto;
+                    padding: 20px;
+                    background: #252526;
+                    border-radius: 8px;
+                    box-shadow: 0px 0px 10px rgba(255, 255, 255, 0.1);
+                }
+                label {
+                    font-size: 14px;
+                    display: block;
+                    margin-top: 10px;
+                }
+                select, input, button {
+                    width: 100%;
+                    padding: 8px;
+                    font-size: 14px;
+                    background: #333;
+                    color: #fff;
+                    border: 1px solid #555;
+                    border-radius: 5px;
+                    margin-top: 5px;
+                }
+                button {
+                    background: #007acc;
+                    cursor: pointer;
+                    transition: 0.3s;
+                    margin-top: 15px;
+                }
+                button:hover {
+                    background: #005f99;
+                }
+                .preview {
+                    margin-top: 15px;
+                    padding: 10px;
+                    background: #2d2d2d;
+                    border-radius: 5px;
+                    color: #fff;
+                    font-size: 14px;
+                    text-align: left;
+                }
+            </style>
+        </head>
+        <body>
+            <h2>WarpWrap - HTML Wrapper</h2>
+            <div class="container">
+                <label for="tag">Select a Tag:</label>
+                <select id="tag">
+                    <option value="div">div</option>
+                    <option value="span">span</option>
+                    <option value="section">section</option>
+                    <option value="article">article</option>
+                    <option value="header">header</option>
+                    <option value="footer">footer</option>
+                    <option value="nav">nav</option>
+                    <option value="aside">aside</option>
+                    <option value="p">p</option>
+                    <option value="strong">strong</option>
+                    <option value="custom">Custom</option>
+                </select>
+                
+                <label for="class">Class Name (optional):</label>
+                <input type="text" id="class" placeholder="e.g. my-class">
 
+                <label for="id">ID (optional):</label>
+                <input type="text" id="id" placeholder="e.g. my-id">
+
+                <label for="styles">Inline Styles (optional):</label>
+                <input type="text" id="styles" placeholder="e.g. color: red; font-size: 14px;">
+
+                <button onclick="wrapText()">Wrap Selection</button>
+
+                <div id="preview" class="preview">Live Preview: &lt;div&gt;...&lt;/div&gt;</div>
+            </div>
+
+            <script>
+                const vscode = acquireVsCodeApi();
+                
+                document.getElementById("tag").addEventListener("change", updatePreview);
+                document.getElementById("class").addEventListener("input", updatePreview);
+                document.getElementById("id").addEventListener("input", updatePreview);
+                document.getElementById("styles").addEventListener("input", updatePreview);
+
+                function updatePreview() {
+                    let tag = document.getElementById('tag').value;
+                    let className = document.getElementById('class').value;
+                    let idName = document.getElementById('id').value;
+                    let styles = document.getElementById('styles').value;
+
+                    let attributes = "";
+                    if (className) attributes += " class=\\"" + className + "\\"";
+                    if (idName) attributes += " id=\\"" + idName + "\\"";
+                    if (styles) attributes += " style=\\"" + styles + "\\"";
+
+                    document.getElementById('preview').innerHTML = "Live Preview: &lt;" + tag + attributes + "&gt;...&lt;/" + tag + "&gt;";
+                }
+
+                function wrapText() {
+                    let tag = document.getElementById('tag').value;
+                    let className = document.getElementById('class').value;
+                    let idName = document.getElementById('id').value;
+                    let styles = document.getElementById('styles').value;
+
+                    if (tag === 'custom') {
+                        tag = prompt('Enter a custom HTML tag:');
+                        if (!tag) return;
+                    }
+
+                    vscode.postMessage({ command: 'wrapText', tag, className, idName, styles });
+                }
+            </script>
+        </body>
+        </html>
     `;
 }

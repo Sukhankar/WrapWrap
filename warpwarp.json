@@ -1,12 +1,12 @@
 {
-    "div": "class='container'",
-    "span": "class='highlight'",
-    "section": "class='content-section'",
-    "article": "class='blog-article'",
-    "header": "class='main-header'",
-    "footer": "class='site-footer'",
-    "nav": "class='navigation'",
-    "aside": "class='sidebar'",
-    "custom": "class='custom-element'"
-  }
-  
+  "defaultTags": [
+    "div", "span", "section", "article", "header", "footer", 
+    "nav", "aside", "p", "strong", "em", "blockquote", "code",
+    "table", "tr", "td", "ul", "ol", "li", "a", "custom"
+  ],
+  "autoFormat": true,
+  "jsxSupport": true,
+  "bulkWrap": true,
+  "useLastTag": false,
+  "customTemplate": "<{tag}{attributes}>{content}</{tag}>"
+}

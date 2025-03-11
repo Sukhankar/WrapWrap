@@ -3,53 +3,95 @@
   "displayName": "WarpWrap",
   "description": "WarpWrap is a powerful VS Code extension that lets you effortlessly wrap HTML elements with custom tags, class names, and IDs. Featuring smart indentation, live preview, and undo support, it streamlines your coding workflow for faster and cleaner HTML structuring.",
   "version": "0.0.1",
-  "publisher": "your-publisher-name",
+  "publisher": "Sukhankar",
+  "repository": {
+  "type": "git",
+  "url": "https://github.com/Sukhankar/WrapWrap.git"
+},  
   "engines": {
     "vscode": "^1.97.0"
   },
  "categories": ["Other"],
-  "activationEvents": [
+  "activationEvents":[
     "onCommand:warpwrap.wrapWithTag",
     "onCommand:warpwrap.wrapWithConfig",
     "onCommand:warpwrap.smartWrap",
     "onCommand:warpwrap.showLivePreview",
     "onCommand:warpwrap.extractStyles",
     "onCommand:warpwrap.undoWrap",
+    "onCommand:warpwrap.openUI",
     "onLanguage:javascriptreact",
     "onLanguage:typescriptreact"
   ],
   "main": "./dist/extension.js",
  "contributes": {
-    "commands": [
-      {
-        "command": "warpwrap.wrapWithTag",
-        "title": "WarpWrap: Wrap with Tag"
-      },
-      {
-        "command": "warpwrap.wrapWithConfig",
-        "title": "WarpWrap: Wrap with Config"
-      },
-      {
-        "command": "warpwrap.smartWrap",
-        "title": "WarpWrap: Smart Wrap"
-      },
-      {
-        "command": "warpwrap.showLivePreview",
-        "title": "WarpWrap: Live Preview"
-      },
-      {
-        "command": "warpwrap.extractStyles",
-        "title": "WarpWrap: Extract Inline Styles"
-      },
-      {
-        "command": "warpwrap.undoWrap",
-        "title": "WarpWrap: Undo Last Wrap"
-      },
-      {
-        "command": "warpwrap.openUI",
-        "title": "WarpWrap: Open UI Panel"
-      }
-    ],
+  "commands": [
+    {
+      "command": "warpwrap.wrapWithTag",
+      "title": "WarpWrap: Wrap with Tag"
+    },
+    {
+      "command": "warpwrap.wrapWithConfig",
+      "title": "WarpWrap: Wrap with Config"
+    },
+    {
+      "command": "warpwrap.smartWrap",
+      "title": "WarpWrap: Smart Wrap"
+    },
+    {
+      "command": "warpwrap.showLivePreview",
+      "title": "WarpWrap: Live Preview"
+    },
+    {
+      "command": "warpwrap.extractStyles",
+      "title": "WarpWrap: Extract Inline Styles"
+    },
+    {
+      "command": "warpwrap.undoWrap",
+      "title": "WarpWrap: Undo Last Wrap"
+    },
+    {
+      "command": "warpwrap.openUI",
+      "title": "WarpWrap: Open UI Panel"
+    }
+  ],
+  "keybindings": [
+    {
+      "command": "warpwrap.wrapWithTag",
+      "key": "ctrl+alt+w",
+      "when": "editorTextFocus"
+    },
+    {
+      "command": "warpwrap.wrapWithConfig",
+      "key": "ctrl+alt+c",
+      "when": "editorTextFocus"
+    },
+    {
+      "command": "warpwrap.smartWrap",
+      "key": "ctrl+alt+s",
+      "when": "editorTextFocus"
+    },
+    {
+      "command": "warpwrap.showLivePreview",
+      "key": "ctrl+alt+p",
+      "when": "editorTextFocus"
+    },
+    {
+      "command": "warpwrap.extractStyles",
+      "key": "ctrl+alt+e",
+      "when": "editorTextFocus"
+    },
+    {
+      "command": "warpwrap.undoWrap",
+      "key": "ctrl+alt+z",
+      "when": "editorTextFocus"
+    },
+    {
+      "command": "warpwrap.openUI",
+      "key": "ctrl+alt+u",
+      "when": "editorTextFocus"
+    }
+  ],
     "configuration": {
       "type": "object",
       "title": "WarpWrap Settings",
