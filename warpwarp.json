@@ -1,0 +1,12 @@
+{
+  "defaultTags": [
+    "div", "span", "section", "article", "header", "footer", 
+    "nav", "aside", "p", "strong", "em", "blockquote", "code",
+    "table", "tr", "td", "ul", "ol", "li", "a", "custom"
+  ],
+  "autoFormat": true,
+  "jsxSupport": true,
+  "bulkWrap": true,
+  "useLastTag": false,
+  "customTemplate": "<{tag}{attributes}>{content}</{tag}>"
+}

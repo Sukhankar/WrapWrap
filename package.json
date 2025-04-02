@@ -1,0 +1,131 @@
+{
+  "name": "wrapwrap",
+  "displayName": "WrapWrap",
+  "description": "WarpWrap is a lightweight VS Code extension designed to enhance HTML editing by providing quick and efficient code wrapping features. It allows developers to wrap selected HTML elements with commonly used tags, improving workflow speed and formatting consistency.",
+  "version": "0.0.1",
+  "publisher": "Sukhankar",
+  "icon": "images/original.png",
+  "license": "MIT",
+  "repository": {
+  "type": "git",
+  "url": "https://github.com/Sukhankar/WrapWrap.git"
+  
+
+},  
+  "engines": {
+    "vscode": "^1.98.0"
+  },
+  "categories": ["Other"],
+  "activationEvents":[
+    "onLanguage:javascriptreact",
+    "onLanguage:typescriptreact"
+  ],
+  "main": "./dist/extension.js",
+ "contributes": {
+  "commands": [
+    {
+      "command": "warpwrap.wrapWithTag",
+      "title": "WarpWrap: Wrap with Tag"
+    },
+    {
+      "command": "warpwrap.wrapWithConfig",
+      "title": "WarpWrap: Wrap with Config"
+    },
+    {
+      "command": "warpwrap.smartWrap",
+      "title": "WarpWrap: Smart Wrap"
+    },
+    {
+      "command": "warpwrap.showLivePreview",
+      "title": "WarpWrap: Live Preview"
+    },
+    {
+      "command": "warpwrap.extractStyles",
+      "title": "WarpWrap: Extract Inline Styles"
+    },
+    {
+      "command": "warpwrap.undoWrap",
+      "title": "WarpWrap: Undo Last Wrap"
+    },
+    {
+      "command": "warpwrap.openUI",
+      "title": "WarpWrap: Open UI Panel"
+    }
+  ],
+  "keybindings": [
+    {
+      "command": "warpwrap.wrapWithTag",
+      "key": "ctrl+alt+w",
+      "when": "editorTextFocus"
+    },
+    {
+      "command": "warpwrap.wrapWithConfig",
+      "key": "ctrl+alt+c",
+      "when": "editorTextFocus"
+    },
+    {
+      "command": "warpwrap.smartWrap",
+      "key": "ctrl+alt+s",
+      "when": "editorTextFocus"
+    },
+    {
+      "command": "warpwrap.showLivePreview",
+      "key": "ctrl+alt+p",
+      "when": "editorTextFocus"
+    },
+    {
+      "command": "warpwrap.extractStyles",
+      "key": "ctrl+alt+e",
+      "when": "editorTextFocus"
+    },
+    {
+      "command": "warpwrap.undoWrap",
+      "key": "ctrl+alt+z",
+      "when": "editorTextFocus"
+    },
+    {
+      "command": "warpwrap.openUI",
+      "key": "ctrl+alt+u",
+      "when": "editorTextFocus"
+    }
+  ],
+    "configuration": {
+      "type": "object",
+      "title": "WarpWrap Settings",
+      "properties": {
+        "warpwrap.configFile": {
+          "type": "string",
+          "default": "warpwrap.json",
+          "description": "Configuration file for warp attributes"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run package",
+    "compile": "npm run check-types && npm run lint && node esbuild.js",
+    "watch": "npm-run-all -p watch:*",
+    "watch:esbuild": "node esbuild.js --watch",
+    "watch:tsc": "tsc --noEmit --watch --project tsconfig.json",
+    "package": "npm run check-types && npm run lint && node esbuild.js --production",
+    "compile-tests": "tsc -p . --outDir out",
+    "watch-tests": "tsc -p . -w --outDir out",
+    "pretest": "npm run compile-tests && npm run compile && npm run lint",
+    "check-types": "tsc --noEmit",
+    "lint": "eslint src",
+    "test": "vscode-test"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.98.0",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "20.x",
+    "@typescript-eslint/eslint-plugin": "^8.28.0",
+    "@typescript-eslint/parser": "^8.28.0",
+    "eslint": "^9.23.0",
+    "esbuild": "^0.25.1",
+    "npm-run-all": "^4.1.5",
+    "typescript": "^5.8.2",
+    "@vscode/test-cli": "^0.0.10",
+    "@vscode/test-electron": "^2.4.1"
+  }
+}
