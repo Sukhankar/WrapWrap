@@ -1,3 +1,7 @@
+Download the extension on VScode
+
+https://marketplace.visualstudio.com/items?itemName=Sukhankar.wrapwrap
+
 WarpWrap - VS Code Extension
 Description
 WarpWrap is a powerful VS Code extension that enhances HTML structuring efficiency. It allows users to wrap elements with custom tags, class names, and IDs while ensuring proper indentation and formatting. The extension also includes features like live preview, undo functionality, and smart wrapping for a seamless development experience.
